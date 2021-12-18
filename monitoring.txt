@@ -1,0 +1,40 @@
+#!/bin/bash
+archi=`uname -a`
+cpuphy=`grep "physical id" /proc/cpuinfo | sort | uniq |wc -l`
+vcpu=`grep "^processor" /proc/cpuinfo | wc -l`
+mem=`free | grep Mem|awk '{print $3/$2 * 100}'`
+disk=`free -t | grep Total | awk '{print $3/$2 * 100}'`
+cpuuse=`top -bn1 | grep "Cpu(s)"|sed "s/.*, *\([0-9.]*\)%* id.*/\1/"| awk '{print 100 - $1"%"}'`
+lastboot=`who -b|cut -c 23-40`
+tcp=`cat /proc/net/sockstat6 | grep TCP6 | cut -c 12-13`
+userlog=`who | wc -l`
+networkip=`hostname -I`
+macc=`ip addr | grep "l
+ink/ether"| cut -c 16-32`
+sudocount=`cat /var/log/sudo/sudo.log | wc -l`
+vir=2
+sudocount=$(($sudocount/$vir))
+lvmcount=`lsblk |grep "lvm"| wc -l`
+zero=0
+if [ "$lvmcount" == "$zero" ]; then
+lvmcount="no"
+else
+lvmcount="yes"
+fi
+ramfree=`free|grep "Mem"| cut -c 28-33`
+ramtotal=`free|grep "Mem" |cut -c 15-21`
+diskfree=`free -t |grep "Total"|cut -c 28-33`
+disktotal=`free -t |grep "Total"|cut -c 13-21`
+
+echo "#Architecture: $archi"
+echo "#CPU physical: $cpuphy"
+echo "#vCPU : $vcpu"
+echo "#Memory Usage: $ramfree / $ramtotal B ($mem %)"
+echo "#Disk Usage: $diskfree /$disktotal B  ($disk %)"
+echo "#CPU load: $cpuuse"
+echo "#Last boot : $lastboot "
+echo "#LVM use : $lvmcount"
+echo "#Connexions TCP : $tcp Established"
+echo "#User log : $userlog"
+echo "#Network: $networkip ($macc)"
+echo "#Sudo : $sudocount cmd"
